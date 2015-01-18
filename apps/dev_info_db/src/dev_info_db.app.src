@@ -1,0 +1,12 @@
+{application, dev_info_db,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, { dev_info_db_app, []}},
+  {env, []}
+ ]}.

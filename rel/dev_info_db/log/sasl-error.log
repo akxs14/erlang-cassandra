@@ -1,0 +1,74 @@
+
+=CRASH REPORT==== 18-Jan-2015::20:15:15 ===
+  crasher:
+    initial call: dev_info_db_worker:init/1
+    pid: <0.1007.0>
+    registered_name: dev_info_db_worker
+    exception exit: {bad_return_value,
+                        {cql_result,
+                            [{cqerl_result_column_spec,<<"deviceinfo">>,
+                                 <<"oem_devices">>,oem_name,varchar},
+                             {cqerl_result_column_spec,<<"deviceinfo">>,
+                                 <<"oem_devices">>,device_id,varchar},
+                             {cqerl_result_column_spec,<<"deviceinfo">>,
+                                 <<"oem_devices">>,username,varchar}],
+                            [[<<0,0,0,3,111,101,109>>,
+                              <<0,0,0,16,100,101,118,105,99,101,32,119,105,116,
+                                104,32,117,115,101,114>>,
+                              <<0,0,0,16,117,115,101,114,95,119,105,116,104,
+                                95,100,101,118,105,99,101>>],
+                             [<<0,0,0,3,111,101,109>>,
+                              <<0,0,0,19,100,101,118,105,99,101,32,119,105,116,
+                                104,111,117,116,32,117,115,101,114>>,
+                              <<0,0,0,0>>]],
+                            {cql_query,
+                                <<"SELECT * FROM deviceinfo.oem_devices WHERE oem_name = ?;">>,
+                                [{oem_name,"oem"}],
+                                undefined,false,100,undefined,1,undefined,
+                                undefined},
+                            {<0.1012.0>,#Ref<0.0.0.164>}}}
+      in function  gen_server:terminate/7 (gen_server.erl, line 804)
+    ancestors: [dev_info_db_sup,<0.1005.0>]
+    messages: []
+    links: [<0.1006.0>]
+    dictionary: []
+    trap_exit: false
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 276
+  neighbours:
+
+=SUPERVISOR REPORT==== 18-Jan-2015::20:15:15 ===
+     Supervisor: {local,dev_info_db_sup}
+     Context:    child_terminated
+     Reason:     {bad_return_value,
+                     {cql_result,
+                         [{cqerl_result_column_spec,<<"deviceinfo">>,
+                              <<"oem_devices">>,oem_name,varchar},
+                          {cqerl_result_column_spec,<<"deviceinfo">>,
+                              <<"oem_devices">>,device_id,varchar},
+                          {cqerl_result_column_spec,<<"deviceinfo">>,
+                              <<"oem_devices">>,username,varchar}],
+                         [[<<0,0,0,3,111,101,109>>,
+                           <<0,0,0,16,100,101,118,105,99,101,32,119,105,116,
+                             104,32,117,115,101,114>>,
+                           <<0,0,0,16,117,115,101,114,95,119,105,116,104,95,
+                             100,101,118,105,99,101>>],
+                          [<<0,0,0,3,111,101,109>>,
+                           <<0,0,0,19,100,101,118,105,99,101,32,119,105,116,
+                             104,111,117,116,32,117,115,101,114>>,
+                           <<0,0,0,0>>]],
+                         {cql_query,
+                             <<"SELECT * FROM deviceinfo.oem_devices WHERE oem_name = ?;">>,
+                             [{oem_name,"oem"}],
+                             undefined,false,100,undefined,1,undefined,
+                             undefined},
+                         {<0.1012.0>,#Ref<0.0.0.164>}}}
+     Offender:   [{pid,<0.1007.0>},
+                  {name,dev_info_db_worker},
+                  {mfargs,{dev_info_db_worker,start_link,[]}},
+                  {restart_type,permanent},
+                  {shutdown,2000},
+                  {child_type,worker}]
+
