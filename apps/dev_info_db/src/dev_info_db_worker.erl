@@ -181,7 +181,8 @@ init([]) ->
 %%          The device record.
 %%-----------------------------------------------------------------------------
 handle_call({get_device, DeviceID}, _From, #state{ client = Client }) ->
-  select_client_device(Client, DeviceID);
+  QueryResult = select_client_device(Client, DeviceID),
+  {reply, QueryResult, #state{client = Client}};
 
 
 %%-----------------------------------------------------------------------------
@@ -197,7 +198,8 @@ handle_call({get_device, DeviceID}, _From, #state{ client = Client }) ->
 %%          The result of the delete operation.
 %%-----------------------------------------------------------------------------
 handle_call({delete_device, DeviceID}, _From, #state{ client = Client }) ->
-  delete_client_device(Client, DeviceID);
+  QueryResult = delete_client_device(Client, DeviceID),
+  {reply, QueryResult, #state{client = Client}};
 
 
 %%-----------------------------------------------------------------------------
@@ -213,7 +215,8 @@ handle_call({delete_device, DeviceID}, _From, #state{ client = Client }) ->
 %%          A list of returned devices.
 %%-----------------------------------------------------------------------------
 handle_call({get_oem_devices, OemName}, _From, #state{ client = Client }) ->
-  select_oem_device(Client, OemName);
+  QueryResult = select_oem_device(Client, OemName),
+  {reply, QueryResult, #state{client = Client}};
 
 
 %%-----------------------------------------------------------------------------
@@ -229,7 +232,8 @@ handle_call({get_oem_devices, OemName}, _From, #state{ client = Client }) ->
 %%          The result of the insert query.
 %%-----------------------------------------------------------------------------
 handle_call({add_oem_device, OemName, DeviceID, Username}, _From, #state{ client = Client }) ->
-  insert_device(Client, OemName, DeviceID, Username);
+  QueryResult = insert_device(Client, OemName, DeviceID, Username),
+  {reply, QueryResult, #state{client = Client}};
 
 
 %%-----------------------------------------------------------------------------
@@ -245,7 +249,8 @@ handle_call({add_oem_device, OemName, DeviceID, Username}, _From, #state{ client
 %%          The result of the insert query.
 %%-----------------------------------------------------------------------------
 handle_call({add_oem_device_bound, OemName, DeviceID, Username}, _From, #state{ client = Client }) ->
-  insert_device(Client, OemName, DeviceID, Username);
+  QueryResult = insert_device(Client, OemName, DeviceID, Username),
+  {reply, QueryResult, #state{client = Client}};
 
 
 %%-----------------------------------------------------------------------------
@@ -261,7 +266,9 @@ handle_call({add_oem_device_bound, OemName, DeviceID, Username}, _From, #state{ 
 %%          The result of the delete query.
 %%-----------------------------------------------------------------------------
 handle_call({delete_oem_devices, DeviceID}, _From, #state{ client = Client }) ->
-  delete_oem_device(Client, DeviceID).
+  QueryResult = delete_oem_device(Client, DeviceID),
+  {reply, QueryResult, #state{client = Client}}.
+
 
 handle_cast(shutdown, State) ->
   {stop, normal, State}.
