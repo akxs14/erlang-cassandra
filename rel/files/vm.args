@@ -1,8 +1,8 @@
 ## Name of the node
--name dev_info_db@127.0.0.1
+-name device_info@127.0.0.1
 
 ## Cookie for distributed erlang
--setcookie dev_info_db
+-setcookie device_info
 
 ## Heartbeat management; auto-restarts VM if it dies or becomes unresponsive
 ## (Disabled by default..use with caution!)

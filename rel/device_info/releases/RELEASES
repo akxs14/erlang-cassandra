@@ -1,0 +1,10 @@
+[{release,"device_info","1","6.3",
+          [{kernel,"3.1",
+                   "/home/angelos/projects/deviceinfo-erl/rel/device_info/lib/kernel-3.1"},
+           {stdlib,"2.3",
+                   "/home/angelos/projects/deviceinfo-erl/rel/device_info/lib/stdlib-2.3"},
+           {sasl,"2.4.1",
+                 "/home/angelos/projects/deviceinfo-erl/rel/device_info/lib/sasl-2.4.1"},
+           {device_info,"1",
+                        "/home/angelos/projects/deviceinfo-erl/rel/device_info/lib/device_info-1"}],
+          permanent}].
