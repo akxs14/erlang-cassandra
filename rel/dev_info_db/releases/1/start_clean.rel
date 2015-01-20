@@ -1,11 +1,11 @@
-%% rel generated at {2015,1,18} {20,14,29}
+%% rel generated at {2015,1,20} {12,38,18}
 {release,{"start_clean",[]},
          {erts,"6.3"},
          [{kernel,"3.1"},
           {stdlib,"2.3"},
           {asn1,"3.0.3",load},
           {compiler,"5.0.3",load},
-          {pooler,"1.3.3-4-g3022a65",load},
+          {pooler,"1.3.3-3-ga65d8f7",load},
           {crypto,"3.4.2",load},
           {public_key,"0.22.1",load},
           {ssl,"5.3.8",load},

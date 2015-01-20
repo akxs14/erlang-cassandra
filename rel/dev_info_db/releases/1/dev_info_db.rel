@@ -1,4 +1,4 @@
-%% rel generated at {2015,1,18} {20,14,29}
+%% rel generated at {2015,1,20} {12,38,18}
 {release,{"dev_info_db","1"},
          {erts,"6.3"},
          [{kernel,"3.1"},
@@ -7,7 +7,7 @@
           {asn1,"3.0.3"},
           {public_key,"0.22.1"},
           {ssl,"5.3.8"},
-          {pooler,"1.3.3-4-g3022a65"},
+          {pooler,"1.3.3-3-ga65d8f7"},
           {cqerl,"0.8.0"},
           {sasl,"2.4.1"},
           {dev_info_db,"1"},

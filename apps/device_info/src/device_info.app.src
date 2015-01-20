@@ -1,0 +1,12 @@
+{application, device_info,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, { device_info_app, []}},
+  {env, []}
+ ]}.

@@ -338,7 +338,7 @@ insert_in_table(Client, Keyspace, Table, NewRecord) ->
 %%          A #cql_result{} containing the result of the query operation.
 %%-----------------------------------------------------------------------------
 prepare_insert_query(Keyspace, Table, ColumnsNames) ->
-  "INSERT INTO " ++ Keyspace ++ "." ++ Table + " (" ++ string:join(ColumnsNames) ++
+  "INSERT INTO " ++ Keyspace ++ "." ++ Table ++ " (" ++ string:join(ColumnsNames, ", ") ++
     ") VALUES (" ++ ["?" || _ <- ColumnsNames] ++ ");".
 
 
