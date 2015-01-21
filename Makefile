@@ -14,11 +14,13 @@ eunit:
 	$(REBAR) eunit
 
 release:
+	$(REBAR) get-deps
 	$(REBAR) compile
 	cd rel
 	$(REBAR) generate
 
 console:
+	$(REBAR) get-deps
 	$(REBAR) compile
 	cd rel
 	$(REBAR) generate
