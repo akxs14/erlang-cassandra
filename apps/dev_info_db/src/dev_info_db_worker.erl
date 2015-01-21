@@ -164,7 +164,6 @@ stop() ->
 %%-----------------------------------------------------------------------------
 init([]) ->
   {ok, Client} = cqerl:new_client({"127.0.0.1", 9042}),
-  io:format("init: ~p~n",[Client]),
   {ok, #state{ client = Client }}.
 
 
@@ -442,14 +441,10 @@ select_oem_device(Client, OemName) ->
 %%          The records from 'Table' where 'Column' == 'Value'
 %%-----------------------------------------------------------------------------
 select_from_table(Client, Keyspace, Table, Column, Value) ->
-  Statement = "SELECT * FROM " ++ Keyspace ++ "." ++ Table ++ " WHERE " ++ Column ++ " = ?;",
-  Values = [ {list_to_atom(Column), Value} ],
-  io:format("Statement: ~p~n",[Statement]),
-  io:format("Values: ~p~n",[Values]),
   {ok, QueryResult} = cqerl:run_query(Client,
     #cql_query{
-      statement = Statement,
-      values = Values
+      statement = "SELECT * FROM " ++ Keyspace ++ "." ++ Table ++ " WHERE " ++ Column ++ " = ?;",
+      values = [ {list_to_atom(Column), Value} ]
     }
   ),
   QueryResult.
