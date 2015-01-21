@@ -1,5 +1,0 @@
-%% rel generated at {2015,1,20} {16,58,31}
-{release,{"device_info","1"},
-         {erts,"6.3"},
-         [{kernel,"3.1"},{stdlib,"2.3"},{sasl,"2.4.1"},{device_info,"1"}]}.
-

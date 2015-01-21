@@ -22,5 +22,5 @@ console:
 	$(REBAR) compile
 	cd rel
 	$(REBAR) generate
-	sh rel/dev_info_db/bin/dev_info_db console
-
+	chmod a+x rel/device_info/bin/device_info
+	./rel/device_info/bin/device_info console
