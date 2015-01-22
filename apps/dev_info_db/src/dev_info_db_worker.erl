@@ -47,7 +47,6 @@
 -compile(export_all).
 -endif.
 
-
 %%% ===================================================================
 %%% API functions
 %%% ===================================================================
@@ -169,6 +168,7 @@ stop() ->
 %%-----------------------------------------------------------------------------
 init([]) ->
   {ok, Client} = cqerl:new_client({"127.0.0.1", 9042}),
+  io:format("init: ~p~n",[Client]),
   {ok, #state{ client = Client }}.
 
 
@@ -322,7 +322,7 @@ insert_device(Client, OemName, DeviceID, Username) ->
 insert_in_table(Client, Keyspace, Table, NewRecord) ->
   {ok, QueryResult} = cqerl:send_query(Client,
     #cql_query{
-      statement = prepare_insert_query(Keyspace, Table, maps:keys(NewRecord)),
+      statement = prepare_insert_query(Keyspace, Table, NewRecord),
       values = prepare_value_tuples(NewRecord)
     }),
     QueryResult.
@@ -341,9 +341,12 @@ insert_in_table(Client, Keyspace, Table, NewRecord) ->
 %% Returns:
 %%          A #cql_result{} containing the result of the query operation.
 %%-----------------------------------------------------------------------------
-prepare_insert_query(Keyspace, Table, ColumnsNames) ->
-  "INSERT INTO " ++ Keyspace ++ "." ++ Table ++ " (" ++ string:join(ColumnsNames, ", ") ++
-    ") VALUES (" ++ ["?" || _ <- ColumnsNames] ++ ");".
+prepare_insert_query(Keyspace, Table, NewRecord) ->
+  ColumnNames     = lists:sort(maps:keys(NewRecord)),
+  StringNames     = string:join(ColumnNames, ", "),
+  Wildcards       = lists:append(["?," || _ <- ColumnNames]),
+  StringWildcards = string:strip(Wildcards, right, $,),
+  "INSERT INTO " ++ Keyspace ++ "." ++ Table ++ " (" ++ StringNames ++ ") VALUES (" ++ StringWildcards ++ ");".
 
 
 %%-----------------------------------------------------------------------------
@@ -446,10 +449,14 @@ select_oem_device(Client, OemName) ->
 %%          The records from 'Table' where 'Column' == 'Value'
 %%-----------------------------------------------------------------------------
 select_from_table(Client, Keyspace, Table, Column, Value) ->
+  Statement = "SELECT * FROM " ++ Keyspace ++ "." ++ Table ++ " WHERE " ++ Column ++ " = ?;",
+  Values = [ {list_to_atom(Column), Value} ],
+  io:format("Statement: ~p~n",[Statement]),
+  io:format("Values: ~p~n",[Values]),
   {ok, QueryResult} = cqerl:run_query(Client,
     #cql_query{
-      statement = "SELECT * FROM " ++ Keyspace ++ "." ++ Table ++ " WHERE " ++ Column ++ " = ?;",
-      values = [ {list_to_atom(Column), Value} ]
+      statement = Statement,
+      values = Values
     }
   ),
   QueryResult.

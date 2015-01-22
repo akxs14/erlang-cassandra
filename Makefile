@@ -14,15 +14,15 @@ eunit:
 	$(REBAR) eunit
 
 release:
-	$(REBAR) get-deps
 	$(REBAR) compile
 	cd rel
 	$(REBAR) generate
 
 console:
-	$(REBAR) get-deps
 	$(REBAR) compile
 	cd rel
 	$(REBAR) generate
-	chmod a+x rel/device_info/bin/device_info
-	./rel/device_info/bin/device_info console
+	sh rel/dev_info_db/bin/dev_info_db console
+
+eunit:
+	$(REBAR) skip_deps=true eunit

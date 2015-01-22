@@ -26,8 +26,9 @@ simple_test() ->
             ?assert(1 + 2 =:= 3).
 
 prepare_insert_query_test() ->
-  Keyspace = "deviceinfo",
-  Table = "oem_devices",
-  ColumnsNames = ["oem_name", "device_id", "username"],
-  InsertQuery = "INSERT INTO deviceinfo.oem_devices (oem_name, device_id, username) VALUES (?,?,?);",
-  ?assertEqual(InsertQuery, dev_info_db_worker:prepare_insert_query(Keyspace, Table, ColumnsNames)).
+  Keyspace        = "deviceinfo",
+  Table           = "oem_devices",
+  NewRecord       = #{"device_id" => "DeviceID", "oem_name" => "OemName", "username" => "Username"},
+  InsertQuery     = "INSERT INTO deviceinfo.oem_devices (device_id, oem_name, username) VALUES (?,?,?);",
+  FormattedQuery  = dev_info_db_worker:prepare_insert_query(Keyspace, Table, NewRecord),
+  ?assertEqual(InsertQuery, FormattedQuery).
