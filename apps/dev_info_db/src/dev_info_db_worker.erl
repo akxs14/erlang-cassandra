@@ -342,11 +342,66 @@ insert_in_table(Client, Keyspace, Table, NewRecord) ->
 %%          A #cql_result{} containing the result of the query operation.
 %%-----------------------------------------------------------------------------
 prepare_insert_query(Keyspace, Table, NewRecord) ->
-  ColumnNames     = lists:sort(maps:keys(NewRecord)),
-  StringNames     = string:join(ColumnNames, ", "),
-  Wildcards       = lists:append(["?," || _ <- ColumnNames]),
-  StringWildcards = string:strip(Wildcards, right, $,),
-  "INSERT INTO " ++ Keyspace ++ "." ++ Table ++ " (" ++ StringNames ++ ") VALUES (" ++ StringWildcards ++ ");".
+  ColumnNames = parse_column_names(NewRecord),
+  "INSERT INTO " ++ Keyspace ++ "." ++ Table ++ " (" ++ stringify_column_names(ColumnNames) ++
+  ") VALUES (" ++ remove_trailing_delimiters(prepare_query_wildcards(ColumnNames)) ++ ");".
+
+
+%%-----------------------------------------------------------------------------
+%% Function: parse_column_names/1
+%% Purpose: It parses a map containing a table row record and returns the names
+%%          of the table columns. The names are sorted alphabetically.
+%% Args:
+%%      RowRecord: A map containing the table column names as keys and row
+%%                 table row contents as values. It should have the form:
+%%                 #{"col1" => "val1", "col2" => "val2", ..., "colN" => "valN",}
+%% Returns:
+%%          A list containing the column names.
+%%          It will have the form ["col1", "col2", ..., "colN"].
+%%-----------------------------------------------------------------------------
+parse_column_names(RowRecord) ->
+  lists:sort(maps:keys(RowRecord)).
+
+
+%%-----------------------------------------------------------------------------
+%% Function: stringify_column_names/1
+%% Purpose: It formats a list of table column names to a single, comma
+%%          delimited string.
+%% Args:
+%%      ColumnNames: A list of column names in the form ["col1", "col2", ..., "colN"].
+%% Returns:
+%%          A formatted string in the form "col1, col2, ..., colN" .
+%%-----------------------------------------------------------------------------
+stringify_column_names(ColumnNames) ->
+  string:join(ColumnNames, ", ").
+
+
+%%-----------------------------------------------------------------------------
+%% Function: prepare_query_wildcards/1
+%% Purpose: It generates a string of wildcard question marks from a list of
+%%          column names. The arity of wildcards is the same with the list's arity.
+%% Args:
+%%      ColumnNames: A list with containing the column names used in a query.
+%%                   It should have the form ["col1", "col2", ..., "colN"].
+%% Returns:
+%%          A string of wildcard characters with the arity of the column list.
+%%          It will have the form "?, ?, ?, ...,?".
+%%-----------------------------------------------------------------------------
+prepare_query_wildcards(ColumnNames) ->
+  lists:append(["?," || _ <- ColumnNames]).
+
+
+%%-----------------------------------------------------------------------------
+%% Function: stringify_query_wildcards/1
+%% Purpose: It removes trailing commas from stringified wildcard lists.
+%% Args:
+%%      WildcardList: A string of wildcards in the form "?, ?,... , ?,".
+%% Returns:
+%%          A formatted string without trailing delimiting commas in the form
+%%          "?, ?, ..., ?, ?" .
+%%-----------------------------------------------------------------------------
+remove_trailing_delimiters(WildcardString) ->
+  string:strip(WildcardString, right, $,).
 
 
 %%-----------------------------------------------------------------------------
