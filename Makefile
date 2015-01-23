@@ -22,7 +22,7 @@ console:
 	$(REBAR) compile
 	cd rel
 	$(REBAR) generate
-	sh rel/dev_info_db/bin/dev_info_db console
+	sh rel/device_info/bin/device_info console
 
 eunit:
 	$(REBAR) skip_deps=true eunit
