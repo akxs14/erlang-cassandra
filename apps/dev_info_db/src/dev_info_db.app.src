@@ -5,8 +5,7 @@
   {registered, []},
   {applications, [
                   kernel,
-                  stdlib,
-                  cqerl
+                  stdlib
                  ]},
   {mod, { dev_info_db_app, []}},
   {env, []}
