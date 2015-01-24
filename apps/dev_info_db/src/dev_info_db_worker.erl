@@ -168,7 +168,6 @@ stop() ->
 %%-----------------------------------------------------------------------------
 init([]) ->
   {ok, Client} = cqerl:new_client({"127.0.0.1", 9042}),
-  io:format("init: ~p~n",[Client]),
   {ok, #state{ client = Client }}.
 
 
