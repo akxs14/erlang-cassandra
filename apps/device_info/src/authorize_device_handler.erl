@@ -1,4 +1,4 @@
-%%%----------------------------------------------------------------------------
+%%%--------------------------------------------------------------------- 
 %%% Copyright Advanced Telematic Systems GmbH 2015
 %%%
 %%% All rights reserved. No part of this computer programs(s) may be 
@@ -6,20 +6,20 @@
 %%% in any form or by any means, electronic, mechanical, photocopying,
 %%% recording, or otherwise without prior written permission of 
 %%% Advanced Telematic Systems GmbH.
-%%%----------------------------------------------------------------------------
+%%%--------------------------------------------------------------------- 
 
--module(get_device_handler).
+-module(authorize_device_handler).
 
 %% REST Callbacks
 -export([
   init/2,
   content_types_provided/2,
-  get_device/2
+  authorize/2
 ]).
 
-%% ============================================================================
+%% ===================================================================
 %% API functions
-%% ============================================================================
+%% ===================================================================
 init(Req, Opts) ->
   {cowboy_rest, Req, Opts}.
 
@@ -29,7 +29,7 @@ content_types_provided(Req, State) ->
   ], Req, State}.
 
 %%-----------------------------------------------------------------------------
-%% Function: get_device/2
+%% Function: authorize/2
 %% Purpose: Returns the information for the device with the given device id,
 %%          packaged in JSON.
 %% Args:
@@ -38,10 +38,11 @@ content_types_provided(Req, State) ->
 %% Returns:
 %%          A JSON response containing the device information.
 %%-----------------------------------------------------------------------------
-get_device(Req, State) ->
+authorize(Req, State) ->
   Body = <<"{\"rest\": \"Hello\"}">>,
   {Body, Req, State}.
 
 %% ===================================================================
 %% Internal functions definitions
 %% ===================================================================
+

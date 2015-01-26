@@ -8,13 +8,13 @@
 %%% Advanced Telematic Systems GmbH.
 %%%----------------------------------------------------------------------------
 
--module(get_device_handler).
+-module(get_client_devices_handler).
 
 %% REST Callbacks
 -export([
   init/2,
   content_types_provided/2,
-  get_device/2
+  get_client_devices/2
 ]).
 
 %% ============================================================================
@@ -29,7 +29,7 @@ content_types_provided(Req, State) ->
   ], Req, State}.
 
 %%-----------------------------------------------------------------------------
-%% Function: get_device/2
+%% Function: get_oem_devices/2
 %% Purpose: Returns the information for the device with the given device id,
 %%          packaged in JSON.
 %% Args:
@@ -38,7 +38,7 @@ content_types_provided(Req, State) ->
 %% Returns:
 %%          A JSON response containing the device information.
 %%-----------------------------------------------------------------------------
-get_device(Req, State) ->
+get_client_devices(Req, State) ->
   Body = <<"{\"rest\": \"Hello\"}">>,
   {Body, Req, State}.
 
