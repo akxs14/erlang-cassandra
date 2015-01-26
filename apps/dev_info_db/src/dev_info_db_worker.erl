@@ -128,8 +128,8 @@ add_oem_device_bound(OemName, DeviceID, Username) ->
 %% Returns:
 %%          A #cql_query containing the result of the delete operation.
 %%-----------------------------------------------------------------------------
-delete_oem_devices(OemName, DeviceID) ->
-  gen_server:call(?SERVER, {delete_oem_devices, OemName, DeviceID}).
+delete_oem_devices(OemName, Devices) ->
+  gen_server:call(?SERVER, {delete_oem_devices, OemName, Devices}).
 
 
 %%-----------------------------------------------------------------------------
@@ -272,9 +272,9 @@ handle_call({add_oem_device_bound, OemName, DeviceID, Username}, _From, #state{ 
 %% Returns:
 %%          The result of the delete query.
 %%-----------------------------------------------------------------------------
-handle_call({delete_oem_devices, OemName, DeviceID}, _From, #state{ client = Client }) ->
-  QueryResult = delete_oem_device(Client, OemName, DeviceID),
-  {reply, QueryResult, #state{client = Client}}.
+handle_call({delete_oem_devices, OemName, Devices}, _From, #state{ client = Client }) ->
+  [delete_oem_device(Client, OemName, DeviceID) || DeviceID <- Devices],
+  {reply, ok, #state{client = Client}}.
 
 
 handle_cast(shutdown, State) ->
