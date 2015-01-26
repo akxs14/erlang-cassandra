@@ -24,7 +24,7 @@ start(_Type, _StartArgs) ->
     {'_', [
             {"/deviceinfo", authorize_device_handler, []},
             {"/authorize_device", authorize_device_handler, []},
-            {"/device/:uuid", get_device_handler, []},
+            {"/device/:uuid", [{uuid, int}], get_device_handler, []},
             {"/admin/api/oem/:uuid/devices", get_oem_devices_handler, []},
             {"/admin/api/clients/:uuid/devices",get_client_devices_handler, []}
     ]}

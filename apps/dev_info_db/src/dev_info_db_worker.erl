@@ -23,11 +23,11 @@
 %%-----------------------------------------------------------------------------
 -export([
   get_device/1,
-  delete_device/1,
   get_oem_devices/1,
+  delete_device/2,
   add_oem_device/3,
   add_oem_device_bound/3,
-  delete_oem_devices/1
+  delete_oem_devices/2
 ]).
 
 -export([
@@ -76,8 +76,8 @@ get_device(DeviceID) ->
 %% Returns:
 %%          A #cql_query containing the result of the delete operation.
 %%-----------------------------------------------------------------------------
-delete_device(DeviceID) ->
-  gen_server:call(?SERVER, {delete_device, DeviceID}).
+delete_device(OemName, DeviceID) ->
+  gen_server:call(?SERVER, {delete_device, OemName, DeviceID}).
 
 
 %%-----------------------------------------------------------------------------
@@ -102,7 +102,7 @@ get_oem_devices(OemName) ->
 %% Returns:
 %%          A #cql_query containing the result of the insert operation.
 %%-----------------------------------------------------------------------------
-add_oem_device(OemName, DeviceID, Username) ->
+add_oem_device(DeviceID, OemName, Username) ->
   gen_server:call(?SERVER, {add_oem_device, OemName, DeviceID, Username}).
 
 
@@ -128,8 +128,8 @@ add_oem_device_bound(OemName, DeviceID, Username) ->
 %% Returns:
 %%          A #cql_query containing the result of the delete operation.
 %%-----------------------------------------------------------------------------
-delete_oem_devices(OemName) ->
-  gen_server:call(?SERVER, {delete_oem_devices, OemName}).
+delete_oem_devices(OemName, DeviceID) ->
+  gen_server:call(?SERVER, {delete_oem_devices, OemName, DeviceID}).
 
 
 %%-----------------------------------------------------------------------------
@@ -204,9 +204,9 @@ handle_call({get_device, DeviceID}, _From, #state{ client = Client }) ->
 %% Returns:
 %%          The result of the delete operation.
 %%-----------------------------------------------------------------------------
-handle_call({delete_device, DeviceID}, _From, #state{ client = Client }) ->
-  QueryResult = delete_client_device(Client, DeviceID),
-  {reply, QueryResult, #state{client = Client}};
+handle_call({delete_device, OemName, DeviceID}, _From, #state{ client = Client }) ->
+  delete_client_device(Client, OemName, DeviceID),
+  {reply, "Row Deleted", #state{client = Client}};
 
 
 %%-----------------------------------------------------------------------------
@@ -239,8 +239,8 @@ handle_call({get_oem_devices, OemName}, _From, #state{ client = Client }) ->
 %%          The result of the insert query.
 %%-----------------------------------------------------------------------------
 handle_call({add_oem_device, OemName, DeviceID, Username}, _From, #state{ client = Client }) ->
-  QueryResult = insert_device(Client, OemName, DeviceID, Username),
-  {reply, QueryResult, #state{client = Client}};
+  insert_device(Client, OemName, DeviceID, Username),
+  {reply, "Row Inserted", #state{client = Client}};
 
 
 %%-----------------------------------------------------------------------------
@@ -272,8 +272,8 @@ handle_call({add_oem_device_bound, OemName, DeviceID, Username}, _From, #state{ 
 %% Returns:
 %%          The result of the delete query.
 %%-----------------------------------------------------------------------------
-handle_call({delete_oem_devices, DeviceID}, _From, #state{ client = Client }) ->
-  QueryResult = delete_oem_device(Client, DeviceID),
+handle_call({delete_oem_devices, OemName, DeviceID}, _From, #state{ client = Client }) ->
+  QueryResult = delete_oem_device(Client, OemName, DeviceID),
   {reply, QueryResult, #state{client = Client}}.
 
 
@@ -306,29 +306,9 @@ code_change(_OldVersion, State, _Extra) ->
 %%          A #cql_result{} containing the result of the query operation.
 %%-----------------------------------------------------------------------------
 insert_device(Client, OemName, DeviceID, Username) ->
-  insert_in_table(Client, "deviceinfo", "oem_devices",
-    #{"oem_name" => OemName, "device_id" => DeviceID, "username" => Username}).
+  NewRecord = #{"oem_name" => OemName, "device_id" => DeviceID, "username" => Username},
+  insert_in_table(Client, "deviceinfo", "oem_devices", NewRecord).
 
-
-%%-----------------------------------------------------------------------------
-%% Function: delete_in_table/5
-%% Purpose: Deletes the rows from Keyspace.Table where 'Column' == 'Value'
-%% Args:
-%%      Client: Cqerl client reference.
-%%      Keyspace: The keyspace used (currently deviceinfo).
-%%      Table: The name of the table to query.
-%%      Column: The column to used as a filter.
-%%      Value: The value to use filter rows against.
-%% Returns:
-%%          A #cql_result{} containing the result of the query operation.
-%%-----------------------------------------------------------------------------
-insert_in_table(Client, Keyspace, Table, NewRecord) ->
-  {ok, QueryResult} = cqerl:send_query(Client,
-    #cql_query{
-      statement = prepare_insert_query(Keyspace, Table, NewRecord),
-      values = prepare_value_tuples(NewRecord)
-    }),
-    QueryResult.
 
 
 %%-----------------------------------------------------------------------------
@@ -419,7 +399,7 @@ remove_trailing_delimiters(WildcardString) ->
 %%          corresponding value.
 %%-----------------------------------------------------------------------------
 prepare_value_tuples(Record) ->
-  maps:to_list(Record).
+  [{list_to_atom(Column), Value} || {Column, Value} <- maps:to_list(Record)].
 
 
 %%-----------------------------------------------------------------------------
@@ -431,8 +411,8 @@ prepare_value_tuples(Record) ->
 %% Returns:
 %%          A #cql_result{} containing the result of the query operation.
 %%-----------------------------------------------------------------------------
-delete_client_device(Client, DeviceID) ->
-  delete_from_table(Client, "deviceinfo", "client_devices", "device_id", DeviceID).
+delete_client_device(Client, OemName, DeviceID) ->
+  delete_from_table(Client, "deviceinfo", "oem_devices", "oem_name", OemName, "device_id", DeviceID).
 
 
 %%-----------------------------------------------------------------------------
@@ -444,28 +424,8 @@ delete_client_device(Client, DeviceID) ->
 %% Returns:
 %%          A #cql_result{} containing the result of the query operation.
 %%-----------------------------------------------------------------------------
-delete_oem_device(Client, DeviceID) ->
-  delete_from_table(Client, "deviceinfo", "oem_devices", "device_id", DeviceID).
-
-
-%%-----------------------------------------------------------------------------
-%% Function: delete_in_table/5
-%% Purpose: Deletes the rows from Keyspace.Table where 'Column' == 'Value'
-%% Args:
-%%      Client: Cqerl client reference.
-%%      Keyspace: The keyspace used (currently deviceinfo).
-%%      Table: The name of the table to query.
-%%      Column: The column to used as a filter.
-%%      Value: The value to use filter rows against.
-%% Returns:
-%%          A #cql_result{} containing the result of the query operation.
-%%-----------------------------------------------------------------------------
-delete_from_table(Client, Keyspace, Table, Column, Value) ->
-  {ok, QueryResult} = cqerl:send_query(Client,
-    #cql_query{
-      statement = "DELETE FROM " ++ Keyspace ++ "." ++ Table ++ " WHERE " ++ Column ++ " = ?;",
-      values = [ {list_to_atom(Column), Value} ]}),
-    QueryResult.
+delete_oem_device(Client, OemName, DeviceID) ->
+  delete_from_table(Client, "deviceinfo", "oem_devices", "oem_name", OemName, "device_id", DeviceID).
 
 
 %%-----------------------------------------------------------------------------
@@ -478,7 +438,7 @@ delete_from_table(Client, Keyspace, Table, Column, Value) ->
 %%          The records from deviceinfo.client_devices with the given device_id
 %%-----------------------------------------------------------------------------
 select_client_device(Client, DeviceID) ->
-  select_from_table(Client, "deviceinfo", "client_devices", "device_id", DeviceID).
+  select_from_table(Client, "deviceinfo", "oem_devices", "device_id", DeviceID).
 
 
 %%-----------------------------------------------------------------------------
@@ -507,14 +467,58 @@ select_oem_device(Client, OemName) ->
 %%          The records from 'Table' where 'Column' == 'Value'
 %%-----------------------------------------------------------------------------
 select_from_table(Client, Keyspace, Table, Column, Value) ->
-  Statement = "SELECT * FROM " ++ Keyspace ++ "." ++ Table ++ " WHERE " ++ Column ++ " = ?;",
-  Values = [ {list_to_atom(Column), Value} ],
-  io:format("Statement: ~p~n",[Statement]),
-  io:format("Values: ~p~n",[Values]),
+  Statement = "SELECT * FROM " ++ Keyspace ++ "." ++ Table ++ " WHERE " ++ Column ++ " = ? ALLOW FILTERING;",
+  ValueTuple = [ {list_to_atom(Column), Value} ],
   {ok, QueryResult} = cqerl:run_query(Client,
     #cql_query{
       statement = Statement,
-      values = Values
+      values = ValueTuple
     }
   ),
   QueryResult.
+
+
+%%-----------------------------------------------------------------------------
+%% Function: delete_in_table/5
+%% Purpose: Deletes the rows from Keyspace.Table where 'Column' == 'Value'
+%% Args:
+%%      Client: Cqerl client reference.
+%%      Keyspace: The keyspace used (currently deviceinfo).
+%%      Table: The name of the table to query.
+%%      Column: The column to used as a filter.
+%%      Value: The value to use filter rows against.
+%% Returns:
+%%          A #cql_result{} containing the result of the query operation.
+%%-----------------------------------------------------------------------------
+delete_from_table(Client, Keyspace, Table, KeyColumn, KeyValue, Column, Value) ->
+  Statement = "DELETE FROM " ++ Keyspace ++ "." ++ Table ++ " WHERE "
+   ++ Column ++ " = ? AND " ++ KeyColumn ++ "= ?;",
+  {ok, void} = cqerl:run_query(Client,
+    #cql_query{
+      statement = Statement,
+      values = [{list_to_atom(Column), Value}, {list_to_atom(KeyColumn), KeyValue}]
+    }),
+  ok.
+
+
+%%-----------------------------------------------------------------------------
+%% Function: delete_in_table/5
+%% Purpose: Deletes the rows from Keyspace.Table where 'Column' == 'Value'
+%% Args:
+%%      Client: Cqerl client reference.
+%%      Keyspace: The keyspace used (currently deviceinfo).
+%%      Table: The name of the table to query.
+%%      Column: The column to used as a filter.
+%%      Value: The value to use filter rows against.
+%% Returns:
+%%          A #cql_result{} containing the result of the query operation.
+%%-----------------------------------------------------------------------------
+insert_in_table(Client, Keyspace, Table, NewRecord) ->
+  Statement = prepare_insert_query(Keyspace, Table, NewRecord),
+  Values = prepare_value_tuples(NewRecord),
+  {ok, void} = cqerl:run_query(Client,
+    #cql_query{
+      statement = Statement,
+      values = Values
+    }),
+  ok.
