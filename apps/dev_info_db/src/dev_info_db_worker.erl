@@ -310,6 +310,57 @@ insert_device(Client, OemName, DeviceID, Username) ->
   insert_in_table(Client, "deviceinfo", "oem_devices", NewRecord).
 
 
+%%-----------------------------------------------------------------------------
+%% Function: delete_client_device/2
+%% Purpose: Delete a record with the given device ID from deviceinfo.client_devices
+%% Args:
+%%      Client: Cqerl client reference.
+%%      DeviceID: The device ID to be deleted.
+%% Returns:
+%%          A #cql_result{} containing the result of the query operation.
+%%-----------------------------------------------------------------------------
+delete_client_device(Client, OemName, DeviceID) ->
+  delete_from_table(Client, "deviceinfo", "oem_devices", "oem_name", OemName, "device_id", DeviceID).
+
+
+%%-----------------------------------------------------------------------------
+%% Function: delete_oem_device/2
+%% Purpose: Delete a record with the given device ID from deviceinfo.oem_devices
+%% Args:
+%%      Client: Cqerl client reference.
+%%      DeviceID: The device ID to be deleted.
+%% Returns:
+%%          A #cql_result{} containing the result of the query operation.
+%%-----------------------------------------------------------------------------
+delete_oem_device(Client, OemName, DeviceID) ->
+  delete_from_table(Client, "deviceinfo", "oem_devices", "oem_name", OemName, "device_id", DeviceID).
+
+
+%%-----------------------------------------------------------------------------
+%% Function: select_client_device/2
+%% Purpose: Get back the record with the given device ID from deviceinfo.client_devices
+%% Args:
+%%      Client: Cqerl client reference.
+%%      DeviceID: The device UUID.
+%% Returns:
+%%          The records from deviceinfo.client_devices with the given device_id
+%%-----------------------------------------------------------------------------
+select_client_device(Client, DeviceID) ->
+  select_from_table(Client, "deviceinfo", "oem_devices", "device_id", DeviceID).
+
+
+%%-----------------------------------------------------------------------------
+%% Function: select_oem_device/2
+%% Purpose: Get back the records for the given OEM from deviceinfo.oem_devices
+%% Args:
+%%      Client: Cqerl client reference.
+%%      OemName: The OEM name.
+%% Returns:
+%%          The records from deviceinfo.oem_devices with the given device_id
+%%-----------------------------------------------------------------------------
+select_oem_device(Client, OemName) ->
+  select_from_table(Client, "deviceinfo", "oem_devices", "oem_name", OemName).
+
 
 %%-----------------------------------------------------------------------------
 %% Function: prepare_insert_query/3
@@ -403,58 +454,6 @@ prepare_value_tuples(Record) ->
 
 
 %%-----------------------------------------------------------------------------
-%% Function: delete_client_device/2
-%% Purpose: Delete a record with the given device ID from deviceinfo.client_devices
-%% Args:
-%%      Client: Cqerl client reference.
-%%      DeviceID: The device ID to be deleted.
-%% Returns:
-%%          A #cql_result{} containing the result of the query operation.
-%%-----------------------------------------------------------------------------
-delete_client_device(Client, OemName, DeviceID) ->
-  delete_from_table(Client, "deviceinfo", "oem_devices", "oem_name", OemName, "device_id", DeviceID).
-
-
-%%-----------------------------------------------------------------------------
-%% Function: delete_oem_device/2
-%% Purpose: Delete a record with the given device ID from deviceinfo.oem_devices
-%% Args:
-%%      Client: Cqerl client reference.
-%%      DeviceID: The device ID to be deleted.
-%% Returns:
-%%          A #cql_result{} containing the result of the query operation.
-%%-----------------------------------------------------------------------------
-delete_oem_device(Client, OemName, DeviceID) ->
-  delete_from_table(Client, "deviceinfo", "oem_devices", "oem_name", OemName, "device_id", DeviceID).
-
-
-%%-----------------------------------------------------------------------------
-%% Function: select_client_device/2
-%% Purpose: Get back the record with the given device ID from deviceinfo.client_devices
-%% Args:
-%%      Client: Cqerl client reference.
-%%      DeviceID: The device UUID.
-%% Returns:
-%%          The records from deviceinfo.client_devices with the given device_id
-%%-----------------------------------------------------------------------------
-select_client_device(Client, DeviceID) ->
-  select_from_table(Client, "deviceinfo", "oem_devices", "device_id", DeviceID).
-
-
-%%-----------------------------------------------------------------------------
-%% Function: select_oem_device/2
-%% Purpose: Get back the records for the given OEM from deviceinfo.oem_devices
-%% Args:
-%%      Client: Cqerl client reference.
-%%      OemName: The OEM name.
-%% Returns:
-%%          The records from deviceinfo.oem_devices with the given device_id
-%%-----------------------------------------------------------------------------
-select_oem_device(Client, OemName) ->
-  select_from_table(Client, "deviceinfo", "oem_devices", "oem_name", OemName).
-
-
-%%-----------------------------------------------------------------------------
 %% Function: select_oem_device/5
 %% Purpose: Query the given Keyspace.Table for rows where 'Column' == 'Value'
 %% Args:
@@ -475,7 +474,61 @@ select_from_table(Client, Keyspace, Table, Column, Value) ->
       values = ValueTuple
     }
   ),
-  QueryResult.
+  { query_tuples, RowHeader, RowsValues } = extract_query_results(QueryResult),
+  assemble_result_hash(Table, RowHeader, RowsValues).
+
+
+
+assemble_result_hash(Table, _RowHeader, []) ->
+  #{ "result" => [] };
+
+assemble_result_hash(Table, RowHeader, RowsValues) ->
+  #{ "result" =>  [pack_row(RowHeader, Row) || Row <- RowsValues] }.
+
+
+
+pack_row(RowHeader, Row) ->
+  Headers = [Header || { _, _, _, Header, _ } <- RowHeader],
+  % ColumnTypes = [ColumnType || { _, _, _, _, ColumnType } <- RowHeader],
+  add_kv(Headers, Row, []).
+
+
+
+add_kv([HeaderH | []], [RowH | []], KVList) ->
+  maps:from_list([{HeaderH, RowH} | KVList]);
+
+add_kv([HeaderH | HeaderT], [RowH | RowT], KVList) ->
+  add_kv(HeaderT, RowT, [{HeaderH, RowH} | KVList]).
+
+
+%%-----------------------------------------------------------------------------
+%% Function: extract_query_results/1
+%% Purpose: Parses the column names with their respective data types, and a list
+%%          of tuples containing the values of all returned rows.
+%% Args:
+%%      QueryResults: A #cql_result record containing the results of the
+%%                    submitted query. The record has the structure:
+%%
+%% #{ cql_result, 
+%%   [ {cqerl_result_column_spec, KeySpace,Table, ColumnName, DataType}, {...}, ..... ],
+%%   [ [ColVal1,..,ColValN], [ColVal1,..,ColValN], ... ],
+%%   { cql_query, .... },
+%%   { <ProcessID>m #Ref<RefID> }
+%% }
+%%
+%% Returns:
+%%          A tuple containing the specs of the selected table columns and
+%%          a list containing the values of every returned row. The tuple's
+%%          structure is:
+%%
+%% { query_tuples,
+%%   [ {cqerl_result_column_spec, KeySpace,Table, ColumnName, DataType}, {...}, ..... ],
+%%   [ [ColVal1,..,ColValN], [ColVal1,..,ColValN], ... ]
+%% }
+%%-----------------------------------------------------------------------------
+extract_query_results(QueryResult) ->
+  { _, RowHeader, RowsValues, _, _ } = QueryResult,
+  { query_tuples, RowHeader, RowsValues }.
 
 
 %%-----------------------------------------------------------------------------
@@ -493,10 +546,11 @@ select_from_table(Client, Keyspace, Table, Column, Value) ->
 delete_from_table(Client, Keyspace, Table, KeyColumn, KeyValue, Column, Value) ->
   Statement = "DELETE FROM " ++ Keyspace ++ "." ++ Table ++ " WHERE "
    ++ Column ++ " = ? AND " ++ KeyColumn ++ "= ?;",
+  Value = [{list_to_atom(Column), Value}, {list_to_atom(KeyColumn), KeyValue}],
   {ok, void} = cqerl:run_query(Client,
     #cql_query{
       statement = Statement,
-      values = [{list_to_atom(Column), Value}, {list_to_atom(KeyColumn), KeyValue}]
+      values = Value
     }),
   ok.
 

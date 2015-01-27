@@ -14,6 +14,7 @@
 -export([
   init/2,
   content_types_provided/2,
+  terminate/3,
   get_device/2
 ]).
 
@@ -25,8 +26,10 @@ init(Req, Opts) ->
 
 content_types_provided(Req, State) ->
   {[
-    {<<"application/json">>, authorize}
+    {<<"application/json">>, get_device}
   ], Req, State}.
+
+terminate(_Reason, _Req, _State) -> ok.
 
 %%-----------------------------------------------------------------------------
 %% Function: get_device/2
@@ -39,7 +42,10 @@ content_types_provided(Req, State) ->
 %%          A JSON response containing the device information.
 %%-----------------------------------------------------------------------------
 get_device(Req, State) ->
-  Body = <<"{\"rest\": \"Hello\"}">>,
+  DeviceID = cowboy_req:binding(deviceid, Req),
+  Device = dev_info_db_worker:get_device(DeviceID),
+  % Json = maps:to_json(Device),
+  Body = <<"{\"rest\": \"Hello World!\"}">>,
   {Body, Req, State}.
 
 %% ===================================================================

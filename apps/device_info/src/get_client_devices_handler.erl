@@ -25,7 +25,7 @@ init(Req, Opts) ->
 
 content_types_provided(Req, State) ->
   {[
-    {<<"application/json">>, authorize}
+    {<<"application/json">>, get_client_devices}
   ], Req, State}.
 
 %%-----------------------------------------------------------------------------
@@ -39,7 +39,10 @@ content_types_provided(Req, State) ->
 %%          A JSON response containing the device information.
 %%-----------------------------------------------------------------------------
 get_client_devices(Req, State) ->
-  Body = <<"{\"rest\": \"Hello\"}">>,
+  ClientID = cowboy_req:binding(clientid, Req),
+  Devices = dev_info_db_worker:get_client_devices(ClientID),
+  % Json = maps:to_json(Devices),
+  Body = <<"{\"rest\": \"Hello World!\"}">>,
   {Body, Req, State}.
 
 %% ===================================================================

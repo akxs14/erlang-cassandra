@@ -1,1 +1,1 @@
-curl -i -H "Accept: application/json" http://localhost:9000/device/123
+curl -i -H "Accept: application/json" http://localhost:9000/device/pio1

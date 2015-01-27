@@ -24,14 +24,15 @@ start(_Type, _StartArgs) ->
     {'_', [
             {"/deviceinfo", authorize_device_handler, []},
             {"/authorize_device", authorize_device_handler, []},
-            {"/device/:uuid", [{uuid, int}], get_device_handler, []},
-            {"/admin/api/oem/:uuid/devices", get_oem_devices_handler, []},
-            {"/admin/api/clients/:uuid/devices",get_client_devices_handler, []}
+            {"/device/:deviceid", get_device_handler, []},
+            {"/admin/api/oem/:oemid/devices", get_oem_devices_handler, []},
+            {"/admin/api/clients/:clientid/devices",get_client_devices_handler, []}
     ]}
   ]),
-  {ok, _} = cowboy:start_http(http, 100, [{port, 9000}], [
-    {env, [{dispatch, Dispatch}]}
-  ]),
+  {ok, _} = cowboy:start_http(http, 100, 
+                              [{port, 9000}], 
+                              [{env, [{dispatch, Dispatch}]}]
+                            ),
   device_info_sup:start_link().
 
 stop(_State) ->

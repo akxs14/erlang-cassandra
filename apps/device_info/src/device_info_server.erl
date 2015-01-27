@@ -29,6 +29,7 @@
 %% ---------------------------------------------------------------------------
 -export([
   init/1,
+  handle_cast/2,
   handle_call/3,
   handle_info/2,
   terminate/2,
@@ -61,6 +62,9 @@ stop() ->
 %%-----------------------------------------------------------------------------
 init([]) ->
   {ok, #state{}}.
+
+handle_cast(_Msg, State) ->
+  {reply, ok, State}.
 
 handle_call(_Msg, _From, State) ->
   {reply, ok, State}.
