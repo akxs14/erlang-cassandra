@@ -1,1 +1,1 @@
-curl -i -H "Accept: application/json" http://localhost:9000/admin/api/oem/111/devices
+curl -i -H "Accept: application/json" http://localhost:9000/admin/api/oem/oem/devices

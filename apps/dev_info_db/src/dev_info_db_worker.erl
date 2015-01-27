@@ -480,10 +480,10 @@ select_from_table(Client, Keyspace, Table, Column, Value) ->
 
 
 assemble_result_hash(Table, _RowHeader, []) ->
-  #{ "result" => [] };
+  maps:from_list([ {Table , []} ]);
 
 assemble_result_hash(Table, RowHeader, RowsValues) ->
-  #{ "result" =>  [pack_row(RowHeader, Row) || Row <- RowsValues] }.
+  maps:from_list([ {Table ,[pack_row(RowHeader, Row) || Row <- RowsValues]} ]).
 
 
 
@@ -495,10 +495,12 @@ pack_row(RowHeader, Row) ->
 
 
 add_kv([HeaderH | []], [RowH | []], KVList) ->
-  maps:from_list([{HeaderH, RowH} | KVList]);
+  ListValue = list_to_binary(RowH),
+  maps:from_list([{HeaderH, ListValue} | KVList]);
 
 add_kv([HeaderH | HeaderT], [RowH | RowT], KVList) ->
-  add_kv(HeaderT, RowT, [{HeaderH, RowH} | KVList]).
+  ListValue = list_to_binary(RowH),
+  add_kv(HeaderT, RowT, [{HeaderH, ListValue} | KVList]).
 
 
 %%-----------------------------------------------------------------------------

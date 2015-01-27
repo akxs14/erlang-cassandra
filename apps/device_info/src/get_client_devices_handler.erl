@@ -41,8 +41,8 @@ content_types_provided(Req, State) ->
 get_client_devices(Req, State) ->
   ClientID = cowboy_req:binding(clientid, Req),
   Devices = dev_info_db_worker:get_client_devices(ClientID),
-  % Json = maps:to_json(Devices),
-  Body = <<"{\"rest\": \"Hello World!\"}">>,
+  Body = maps:to_json(Devices),
+  % Body = <<"{\"rest\": \"Hello World!\"}">>,
   {Body, Req, State}.
 
 %% ===================================================================
