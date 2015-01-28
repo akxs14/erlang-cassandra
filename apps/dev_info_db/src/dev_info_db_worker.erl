@@ -453,47 +453,72 @@ prepare_value_tuples(Record) ->
   [{list_to_atom(Column), Value} || {Column, Value} <- maps:to_list(Record)].
 
 
+
 %%-----------------------------------------------------------------------------
-%% Function: select_oem_device/5
-%% Purpose: Query the given Keyspace.Table for rows where 'Column' == 'Value'
+%% Function: assemble_result_hash/3
+%% Purpose: Creates a hash containing the record set as a list with every row
+%%          beeing a map.
 %% Args:
-%%      Client: Cqerl client reference.
-%%      Keyspace: The keyspace used (currently deviceinfo).
-%%      Table: The name of the table to query.
-%%      Column: The column to used as a filter.
-%%      Value: The value to use filter rows against.
+%%      Table : The name of the table which was queried.
+%%
+%%      RowHeader : A list containining information about the returned rows,
+%%                  including keyspace, column family, name and data type.
+%%
+%%      RecordSetValues : A list containing the record set 
+%%
 %% Returns:
-%%          The records from 'Table' where 'Column' == 'Value'
+%%          A map containing the retrieved record set in the form of a map.
+%%          It follows the structure:
+%%
+%% #{ TableName => [#{ Col1 => Val1, Col2 => Val2, ...}, #{ Col1 => Val1, Col2 => Val2, ...}] }
 %%-----------------------------------------------------------------------------
-select_from_table(Client, Keyspace, Table, Column, Value) ->
-  Statement = "SELECT * FROM " ++ Keyspace ++ "." ++ Table ++ " WHERE " ++ Column ++ " = ? ALLOW FILTERING;",
-  ValueTuple = [ {list_to_atom(Column), Value} ],
-  {ok, QueryResult} = cqerl:run_query(Client,
-    #cql_query{
-      statement = Statement,
-      values = ValueTuple
-    }
-  ),
-  { query_tuples, RowHeader, RowsValues } = extract_query_results(QueryResult),
-  assemble_result_hash(Table, RowHeader, RowsValues).
-
-
-
 assemble_result_hash(Table, _RowHeader, []) ->
   maps:from_list([ {Table , []} ]);
 
-assemble_result_hash(Table, RowHeader, RowsValues) ->
-  maps:from_list([ {Table ,[pack_row(RowHeader, Row) || Row <- RowsValues]} ]).
+assemble_result_hash(Table, RowHeader, RecordSetValues) ->
+  maps:from_list([ {Table ,[pack_row(RowHeader, Row) || Row <- RecordSetValues]} ]).
 
 
-
+%%-----------------------------------------------------------------------------
+%% Function: pack_row/2
+%% Purpose: Extracts the names of the columns and couples them with the
+%%          respective scalar value.
+%% Args:
+%%      RowHeader : A list containining information about the returned rows,
+%%                  including keyspace, column family, name and data type.
+%%
+%%      Row : A list containing the values of a returned row.
+%%
+%% Returns:
+%%          A list containing the KV tuples for the returned record set.
+%%               Its structure is:
+%%
+%% [ {Col1Name, Col1Value}, {Col2Name, Col2Value}, ..., {ColNName, ColNValue} ]
+%%-----------------------------------------------------------------------------
 pack_row(RowHeader, Row) ->
   Headers = [Header || { _, _, _, Header, _ } <- RowHeader],
-  % ColumnTypes = [ColumnType || { _, _, _, _, ColumnType } <- RowHeader],
   add_kv(Headers, Row, []).
 
 
-
+%%-----------------------------------------------------------------------------
+%% Function: add_kv/3
+%% Purpose: Adds a {K, V} tuple in the list containing the db row values and the
+%%          name of the respective column.
+%% Args:
+%%      Header list [HeaderH | HeaderT] : A list containing the column names of 
+%%                                        the returned record set.
+%%
+%%      Row list [RowH | RowT] : A list containing the values of a returned row 
+%%                               from the record set.
+%%
+%%      KVList : A list containing the KV tuples for the returned record set.
+%%               Its structure is:
+%%
+%% [ {Col1Name, Col1Value}, {Col2Name, Col2Value}, ..., {ColNName, ColNValue} ]
+%%
+%% Returns:
+%%         The KVList with all row headers and their values in tuples. 
+%%-----------------------------------------------------------------------------
 add_kv([HeaderH | []], [RowH | []], KVList) ->
   maps:from_list([{HeaderH, RowH} | KVList]);
 
@@ -529,6 +554,31 @@ add_kv([HeaderH | HeaderT], [RowH | RowT], KVList) ->
 extract_query_results(QueryResult) ->
   { _, RowHeader, RowsValues, _, _ } = QueryResult,
   { query_tuples, RowHeader, RowsValues }.
+
+
+%%-----------------------------------------------------------------------------
+%% Function: select_oem_device/5
+%% Purpose: Query the given Keyspace.Table for rows where 'Column' == 'Value'
+%% Args:
+%%      Client: Cqerl client reference.
+%%      Keyspace: The keyspace used (currently deviceinfo).
+%%      Table: The name of the table to query.
+%%      Column: The column to used as a filter.
+%%      Value: The value to use filter rows against.
+%% Returns:
+%%          The records from 'Table' where 'Column' == 'Value'
+%%-----------------------------------------------------------------------------
+select_from_table(Client, Keyspace, Table, Column, Value) ->
+  Statement = "SELECT * FROM " ++ Keyspace ++ "." ++ Table ++ " WHERE " ++ Column ++ " = ? ALLOW FILTERING;",
+  ValueTuple = [ {list_to_atom(Column), Value} ],
+  {ok, QueryResult} = cqerl:run_query(Client,
+    #cql_query{
+      statement = Statement,
+      values = ValueTuple
+    }
+  ),
+  { query_tuples, RowHeader, RowsValues } = extract_query_results(QueryResult),
+  assemble_result_hash(Table, RowHeader, RowsValues).
 
 
 %%-----------------------------------------------------------------------------
