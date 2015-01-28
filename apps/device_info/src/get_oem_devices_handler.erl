@@ -40,13 +40,15 @@ content_types_provided(Req, State) ->
 %%-----------------------------------------------------------------------------
 get_oem_devices(Req, State) ->
   OemID = cowboy_req:binding(oemid, Req),
-  Devices = jsx:encode(dev_info_db_worker:get_oem_devices(OemID)),
+  Devices = dev_info_db_worker:get_oem_devices(OemID)),
 
   io:format("~n~n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!~n~n"),
-  io:format("~p", [Devices]),
+  io:format("~p~n", [Devices]),
   io:format("~n~n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!~n~n"),
-  % Body = <<"{\"rest\": \"Hello World!\"}">>,
-  {Devices, Req, State}.
+  
+  Body = <<"{\"rest\": \"Hello World!\"}">>,
+  
+  {Body, Req, State}.
 
 %% ===================================================================
 %% Internal functions definitions

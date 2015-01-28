@@ -495,12 +495,10 @@ pack_row(RowHeader, Row) ->
 
 
 add_kv([HeaderH | []], [RowH | []], KVList) ->
-  ListValue = list_to_binary(RowH),
-  maps:from_list([{HeaderH, ListValue} | KVList]);
+  maps:from_list([{HeaderH, RowH} | KVList]);
 
 add_kv([HeaderH | HeaderT], [RowH | RowT], KVList) ->
-  ListValue = list_to_binary(RowH),
-  add_kv(HeaderT, RowT, [{HeaderH, ListValue} | KVList]).
+  add_kv(HeaderT, RowT, [{HeaderH, RowH} | KVList]).
 
 
 %%-----------------------------------------------------------------------------
