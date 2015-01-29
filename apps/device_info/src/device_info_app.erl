@@ -12,8 +12,51 @@
 
 -behaviour(application).
 
-%% Application callbacks
--export([start/2, stop/1]).
+%%-----------------------------------------------------------------------------
+%% API Function Exports
+%%-----------------------------------------------------------------------------
+-export([
+  start/2,
+  stop/1,
+  shell/0
+]).
+
+
+%%% ===================================================================
+%%% API functions
+%%% ===================================================================
+
+%%-----------------------------------------------------------------------------
+%% Function: shell/0
+%% Purpose: Called by make shell, used for debugging and development sessions.
+%%          Initializes all the dependencies so they don't have to be initialized
+%%          manually during a shell session. After all dependencies have been 
+%%          initialized it will start device_info itself.
+%%
+%%          WARNING: Update the 'Dependencies' list when dependencies are add
+%%                   or removed from the project.
+%%
+%% Args:
+%%      -
+%% Returns:
+%%          The state of the initialized device_info_sup process.
+%%-----------------------------------------------------------------------------
+shell() ->
+  Dependencies = [
+    crypto,
+    asn1,
+    public_key,
+    ssl,
+    ranch,
+    cowlib,
+    cowboy,
+    pooler,
+    cqerl,
+    dev_info_db
+  ],
+  [start_dependency(Dependency) || Dependency <- Dependencies],
+  start(permanent, []).
+
 
 %% ===================================================================
 %% Application callbacks
@@ -30,10 +73,24 @@ start(_Type, _StartArgs) ->
     ]}
   ]),
   {ok, _} = cowboy:start_http(http, 100, 
-                              [{port, 9000}], 
+                              [{port, 9222}], 
                               [{env, [{dispatch, Dispatch}]}]
                             ),
   device_info_sup:start_link().
 
 stop(_State) ->
   ok.
+
+
+%%-----------------------------------------------------------------------------
+%% Function: start_dependency/1
+%% Purpose: Initializes a application with the given 'Dependency' name.
+%%
+%% Args:
+%%      Dependency: The name of the application to be initialized.
+%% Returns:
+%%          The state of the initialized application process.
+%%-----------------------------------------------------------------------------
+start_dependency(Dependency) ->
+  io:format("Starting ~p~n",[Dependency]),
+  application:start(Dependency).
