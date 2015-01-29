@@ -41,8 +41,8 @@ content_types_provided(Req, State) ->
 get_oem_devices(Req, State) ->
   OemID = cowboy_req:binding(oemid, Req),
   Devices = dev_info_db_worker:get_oem_devices(OemID),
-  Body = <<"{\"rest\": \"Hello World!\"}">>,
-  {Body, Req, State}.
+  ResponseBody = jiffy:encode(Devices),
+  {ResponseBody, Req, State}.
 
 %% ===================================================================
 %% Internal functions definitions

@@ -44,9 +44,8 @@ terminate(_Reason, _Req, _State) -> ok.
 get_device(Req, State) ->
   DeviceID = cowboy_req:binding(deviceid, Req),
   Device = dev_info_db_worker:get_device(DeviceID),
-  Body = maps:to_json(Device),
-  % Body = <<"{\"rest\": \"Hello World!\"}">>,
-  {Body, Req, State}.
+  ResponseBody = jiffy:encode(Device),
+  {ResponseBody, Req, State}.
 
 %% ===================================================================
 %% Internal functions definitions
