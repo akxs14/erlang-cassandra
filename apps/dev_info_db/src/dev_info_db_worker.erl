@@ -473,10 +473,10 @@ prepare_value_tuples(Record) ->
 %% #{ TableName => [#{ Col1 => Val1, Col2 => Val2, ...}, #{ Col1 => Val1, Col2 => Val2, ...}] }
 %%-----------------------------------------------------------------------------
 assemble_result_hash(Table, _RowHeader, []) ->
-  maps:from_list([ {Table , []} ]);
+  maps:from_list([ {list_to_binary(Table) , []} ]);
 
 assemble_result_hash(Table, RowHeader, RecordSetValues) ->
-  maps:from_list([ {Table ,[pack_row(RowHeader, Row) || Row <- RecordSetValues]} ]).
+  maps:from_list([ {list_to_binary(Table) ,[pack_row(RowHeader, Row) || Row <- RecordSetValues]} ]).
 
 
 %%-----------------------------------------------------------------------------
