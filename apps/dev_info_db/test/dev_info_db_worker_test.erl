@@ -61,4 +61,4 @@ remove_trailing_delimiters_test() ->
 prepare_value_tuples_test() ->
   TestRecord = #{"oem_name" => "OemName", "device_id" => "DeviceID", "username" => "Username"},
   TuplesList = dev_info_db_worker:prepare_value_tuples(TestRecord),
-  ?assertEqual([{"device_id", "DeviceID"}, {"oem_name", "OemName"}, {"username", "Username"}], TuplesList).
+  ?assertEqual([{device_id, "DeviceID"}, {oem_name, "OemName"}, {username, "Username"}], TuplesList).

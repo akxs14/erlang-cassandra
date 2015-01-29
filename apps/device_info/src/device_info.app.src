@@ -7,7 +7,7 @@
                   kernel,
                   stdlib,
                   cowboy,
-                  jsxn
+                  dev_info_db
                  ]},
   {mod, { device_info_app, []}},
   {env, []}
