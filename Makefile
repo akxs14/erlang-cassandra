@@ -42,4 +42,4 @@ console:
 # all its dependencies loaded.
 shell:
 	$(REBAR) compile
-	erl $(ERLFLAGS) -s device_info_app shell
+	erl $(ERLFLAGS) -s device_info_app shell -eco_auto_init true

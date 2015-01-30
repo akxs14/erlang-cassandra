@@ -52,7 +52,8 @@ shell() ->
     cowboy,
     pooler,
     cqerl,
-    dev_info_db
+    dev_info_db,
+    eco
   ],
   [start_dependency(Dependency) || Dependency <- Dependencies],
   start(permanent, []).
@@ -63,20 +64,8 @@ shell() ->
 %% ===================================================================
 
 start(_Type, _StartArgs) ->
-  Dispatch = cowboy_router:compile([
-    {'_', [
-            {"/deviceinfo", authorize_device_handler, []},
-            {"/authorize_device", authorize_device_handler, []},
-            {"/device/:deviceid", get_device_handler, []},
-            {"/admin/api/oem/:oemid/devices", get_oem_devices_handler, []},
-            {"/admin/api/clients/:clientid/devices",get_client_devices_handler, []}
-    ]}
-  ]),
-  {ok, _} = cowboy:start_http(http, 100, 
-                              [{port, 9222}], 
-                              [{env, [{dispatch, Dispatch}]}]
-                            ),
-  device_info_sup:start_link().
+  start_cowboy(),
+  device_info_sup:start_link(["pipa"]).
 
 stop(_State) ->
   ok.
@@ -93,4 +82,28 @@ stop(_State) ->
 %%-----------------------------------------------------------------------------
 start_dependency(Dependency) ->
   io:format("Starting ~p~n",[Dependency]),
+
+  % {ok, F} = eco:setup(<<"deviceinfo.conf">>),
+  % AuthPlusPort = eco:term(auth_plus_port, F),
+
+  % io:format("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!~n"),
+  % io:format("~p~n",[AuthPlusPort]),
+  % io:format("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!~n"),
+
+
   application:start(Dependency).
+
+start_cowboy() ->
+  Dispatch = cowboy_router:compile([
+    {'_', [
+            {"/deviceinfo", authorize_device_handler, []},
+            {"/authorize_device", authorize_device_handler, []},
+            {"/device/:deviceid", get_device_handler, []},
+            {"/admin/api/oem/:oemid/devices", get_oem_devices_handler, []},
+            {"/admin/api/clients/:clientid/devices",get_client_devices_handler, []}
+    ]}
+  ]),
+  {ok, _} = cowboy:start_http(http, 100, 
+                              [{port, 9222}], 
+                              [{env, [{dispatch, Dispatch}]}]
+                            ).
