@@ -63,9 +63,12 @@ shell() ->
 %% Application callbacks
 %% ===================================================================
 
+
 start(_Type, _StartArgs) ->
-  start_cowboy(),
-  device_info_sup:start_link(["pipa"]).
+  ConfFile = load_conf_file(),
+  start_cowboy(get_dev_info_port(ConfFile)),
+  device_info_sup:start_link().
+
 
 stop(_State) ->
   ok.
@@ -82,18 +85,19 @@ stop(_State) ->
 %%-----------------------------------------------------------------------------
 start_dependency(Dependency) ->
   io:format("Starting ~p~n",[Dependency]),
-
-  % {ok, F} = eco:setup(<<"deviceinfo.conf">>),
-  % AuthPlusPort = eco:term(auth_plus_port, F),
-
-  % io:format("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!~n"),
-  % io:format("~p~n",[AuthPlusPort]),
-  % io:format("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!~n"),
-
-
   application:start(Dependency).
 
-start_cowboy() ->
+
+%%-----------------------------------------------------------------------------
+%% Function: start_cowboy/1
+%% Purpose: Starts a cowboy instance supplying the RESTful API for Dev Info.
+%%
+%% Args:
+%%      DevInfoPort: The port the server will use.
+%% Returns:
+%%          A tuple containing a status code.
+%%-----------------------------------------------------------------------------
+start_cowboy(DevInfoPort) ->
   Dispatch = cowboy_router:compile([
     {'_', [
             {"/deviceinfo", authorize_device_handler, []},
@@ -103,7 +107,35 @@ start_cowboy() ->
             {"/admin/api/clients/:clientid/devices",get_client_devices_handler, []}
     ]}
   ]),
-  {ok, _} = cowboy:start_http(http, 100, 
-                              [{port, 9222}], 
+  {ok, Started} = cowboy:start_http(http, 100, 
+                              [{port, DevInfoPort}], 
                               [{env, [{dispatch, Dispatch}]}]
                             ).
+
+
+%%-----------------------------------------------------------------------------
+%% Function: load_conf_file/0
+%% Purpose: Loads the configuration file ./conf/deviceonfo.conf
+%%
+%% Args:
+%%      - 
+%% Returns:
+%%          A handle to the files contents loaded in mnesia.
+%%-----------------------------------------------------------------------------
+load_conf_file() ->
+  {ok, ConfFile} = eco:setup(<<"deviceinfo.conf">>, [force_kv]),
+  ConfFile.
+
+
+%%-----------------------------------------------------------------------------
+%% Function: get_dev_info_port/1
+%% Purpose: Returns the port to be used by cowboy as defined in
+%%          deviceinfo.conf.
+%%
+%% Args:
+%%      ConfFile: The handle to configuration's file mnesia loaded data.
+%% Returns:
+%%          The number of the port to be used.
+%%-----------------------------------------------------------------------------
+get_dev_info_port(ConfFile) ->
+  eco:term(device_info_port, ConfFile).
