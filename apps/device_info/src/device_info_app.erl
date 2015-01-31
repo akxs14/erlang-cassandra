@@ -52,8 +52,8 @@ shell() ->
     cowboy,
     pooler,
     cqerl,
-    dev_info_db,
-    eco
+    eco,
+    dev_info_db
   ],
   [start_dependency(Dependency) || Dependency <- Dependencies],
   start(permanent, []).
