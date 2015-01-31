@@ -52,7 +52,8 @@ shell() ->
     cowboy,
     pooler,
     cqerl,
-    dev_info_db
+    dev_info_db,
+    eco
   ],
   [start_dependency(Dependency) || Dependency <- Dependencies],
   start(permanent, []).
@@ -62,21 +63,12 @@ shell() ->
 %% Application callbacks
 %% ===================================================================
 
+
 start(_Type, _StartArgs) ->
-  Dispatch = cowboy_router:compile([
-    {'_', [
-            {"/deviceinfo", authorize_device_handler, []},
-            {"/authorize_device", authorize_device_handler, []},
-            {"/device/:deviceid", get_device_handler, []},
-            {"/admin/api/oem/:oemid/devices", get_oem_devices_handler, []},
-            {"/admin/api/clients/:clientid/devices",get_client_devices_handler, []}
-    ]}
-  ]),
-  {ok, _} = cowboy:start_http(http, 100, 
-                              [{port, 9222}], 
-                              [{env, [{dispatch, Dispatch}]}]
-                            ),
+  ConfFile = load_conf_file(),
+  start_cowboy(get_dev_info_port(ConfFile)),
   device_info_sup:start_link().
+
 
 stop(_State) ->
   ok.
@@ -94,3 +86,56 @@ stop(_State) ->
 start_dependency(Dependency) ->
   io:format("Starting ~p~n",[Dependency]),
   application:start(Dependency).
+
+
+%%-----------------------------------------------------------------------------
+%% Function: start_cowboy/1
+%% Purpose: Starts a cowboy instance supplying the RESTful API for Dev Info.
+%%
+%% Args:
+%%      DevInfoPort: The port the server will use.
+%% Returns:
+%%          A tuple containing a status code.
+%%-----------------------------------------------------------------------------
+start_cowboy(DevInfoPort) ->
+  Dispatch = cowboy_router:compile([
+    {'_', [
+            {"/deviceinfo", authorize_device_handler, []},
+            {"/authorize_device", authorize_device_handler, []},
+            {"/device/:deviceid", get_device_handler, []},
+            {"/admin/api/oem/:oemid/devices", get_oem_devices_handler, []},
+            {"/admin/api/clients/:clientid/devices",get_client_devices_handler, []}
+    ]}
+  ]),
+  {ok, Started} = cowboy:start_http(http, 100, 
+                              [{port, DevInfoPort}], 
+                              [{env, [{dispatch, Dispatch}]}]
+                            ).
+
+
+%%-----------------------------------------------------------------------------
+%% Function: load_conf_file/0
+%% Purpose: Loads the configuration file ./conf/deviceonfo.conf
+%%
+%% Args:
+%%      - 
+%% Returns:
+%%          A handle to the files contents loaded in mnesia.
+%%-----------------------------------------------------------------------------
+load_conf_file() ->
+  {ok, ConfFile} = eco:setup(<<"deviceinfo.conf">>, [force_kv]),
+  ConfFile.
+
+
+%%-----------------------------------------------------------------------------
+%% Function: get_dev_info_port/1
+%% Purpose: Returns the port to be used by cowboy as defined in
+%%          deviceinfo.conf.
+%%
+%% Args:
+%%      ConfFile: The handle to configuration's file mnesia loaded data.
+%% Returns:
+%%          The number of the port to be used.
+%%-----------------------------------------------------------------------------
+get_dev_info_port(ConfFile) ->
+  eco:term(device_info_port, ConfFile).
