@@ -66,8 +66,8 @@ shell() ->
 
 
 start(_Type, _StartArgs) ->
-  ConfFile = load_conf_file(),
-  start_cowboy(get_dev_info_port(ConfFile)),
+  ConfFile = conf_manager:load_conf_file(),
+  start_cowboy(conf_manager:get_dev_info_port(ConfFile)),
   device_info_sup:start_link().
 
 
@@ -115,31 +115,3 @@ start_cowboy(DevInfoPort) ->
                               [{port, DevInfoPort}], 
                               [{env, [{dispatch, Dispatch}]}]
                             ).
-
-
-%%-----------------------------------------------------------------------------
-%% Function: load_conf_file/0
-%% Purpose: Loads the configuration file ./conf/deviceonfo.conf
-%%
-%% Args:
-%%      - 
-%% Returns:
-%%          A handle to the files contents loaded in mnesia.
-%%-----------------------------------------------------------------------------
-load_conf_file() ->
-  {ok, ConfFile} = eco:setup(<<"deviceinfo.conf">>, [force_kv]),
-  ConfFile.
-
-
-%%-----------------------------------------------------------------------------
-%% Function: get_dev_info_port/1
-%% Purpose: Returns the port to be used by cowboy as defined in
-%%          deviceinfo.conf.
-%%
-%% Args:
-%%      ConfFile: The handle to configuration's file mnesia loaded data.
-%% Returns:
-%%          The number of the port to be used.
-%%-----------------------------------------------------------------------------
-get_dev_info_port(ConfFile) ->
-  eco:term(device_info_port, ConfFile).

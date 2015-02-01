@@ -171,10 +171,10 @@ stop() ->
 %%          A tuple indicating the result of initialization and the server's state.
 %%-----------------------------------------------------------------------------
 init([]) ->
-  ConfFile = load_conf_file(),
+  ConfFile = conf_manager:load_conf_file(),
   {ok, Client} = cqerl:new_client({
-    get_cassandra_host(ConfFile),
-    get_cassandra_port(ConfFile)
+    conf_manager:get_cassandra_host(ConfFile),
+    conf_manager:get_cassandra_port(ConfFile)
   }),
   {ok, #state{ client = Client }}.
 
@@ -298,50 +298,6 @@ code_change(_OldVersion, State, _Extra) ->
 %%%====================================================================
 %%% Internal Function Definitions
 %%%====================================================================
-
-
-
-%%-----------------------------------------------------------------------------
-%% Function: load_conf_file/0
-%% Purpose: Loads the configuration file ./conf/deviceonfo.conf
-%%
-%% Args:
-%%      - 
-%% Returns:
-%%          A handle to the files contents loaded in mnesia.
-%%-----------------------------------------------------------------------------
-load_conf_file() ->
-  {ok, ConfFile} = eco:setup(<<"deviceinfo.conf">>, [force_kv]),
-  ConfFile.
-
-
-%%-----------------------------------------------------------------------------
-%% Function: get_dev_info_port/1
-%% Purpose: Returns the port to be used by cowboy as defined in
-%%          deviceinfo.conf.
-%%
-%% Args:
-%%      ConfFile: The handle to configuration's file mnesia loaded data.
-%% Returns:
-%%          The number of the port to be used.
-%%-----------------------------------------------------------------------------
-get_cassandra_host(ConfFile) ->
-  eco:term(cassandra_host, ConfFile).
-
-
-
-%%-----------------------------------------------------------------------------
-%% Function: get_dev_info_port/1
-%% Purpose: Returns the port to be used by cowboy as defined in
-%%          deviceinfo.conf.
-%%
-%% Args:
-%%      ConfFile: The handle to configuration's file mnesia loaded data.
-%% Returns:
-%%          The number of the port to be used.
-%%-----------------------------------------------------------------------------
-get_cassandra_port(ConfFile) ->
-  eco:term(cassandra_port, ConfFile).
 
 
 %%-----------------------------------------------------------------------------
