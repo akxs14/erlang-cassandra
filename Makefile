@@ -43,3 +43,18 @@ console:
 shell:
 	$(REBAR) compile
 	erl $(ERLFLAGS) -s device_info_app shell -eco_auto_init true
+
+deb-package:
+	rebar get-deps
+	$(REBAR) compile
+	cd rel
+	$(REBAR) generate
+
+	rm -r ./deb/etc/device_info
+	cp -r ./rel/device_info deb/etc
+
+	cp -r ./conf deb/var
+
+	make -C ./deps/debbie
+	erl -pa deps/debbie/ebin -pa deps/debbie/deps/edgar/ebin -pa deps/debbie/deps/swab/ebin
+  #  -eval "debbie:fy([{root_path, "deb/"}])."

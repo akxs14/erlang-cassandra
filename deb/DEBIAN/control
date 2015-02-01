@@ -1,0 +1,8 @@
+Package: device-info
+Version: 0.0.1
+Section: misc
+Architecture: all
+Essential: no
+Priority: optional
+Maintainer: ATS GmbH
+Description: Auth+ RESTfull service providing information on OEM devices.
