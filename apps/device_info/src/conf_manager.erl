@@ -15,7 +15,10 @@
   load_conf_file/0,
   get_cassandra_host/1,
   get_cassandra_port/1,
-  get_dev_info_port/1
+  get_dev_info_port/1,
+  get_auth_plus_host/1,
+  get_auth_plus_pass/1,
+  get_auth_plus_secret/1
 ]).
 
 %% ============================================================================
@@ -36,6 +39,17 @@ load_conf_file() ->
   {ok, ConfFile} = eco:setup(<<"deviceinfo.conf">>, [force_kv]),
   ConfFile.
 
+get_auth_plus_port(ConfFile) ->
+  eco:term(auth_plus_port, ConfFile).
+
+get_auth_plus_host(ConfFile) ->
+  eco:term(auth_plus_host, ConfFile).
+
+get_auth_plus_pass(ConfFile) ->
+  eco:term(auth_plus_pass, ConfFile).
+
+get_auth_plus_secret(ConfFile) ->
+  eco:term(auth_plus_secret, ConfFile).
 
 %%-----------------------------------------------------------------------------
 %% Function: get_dev_info_port/1
