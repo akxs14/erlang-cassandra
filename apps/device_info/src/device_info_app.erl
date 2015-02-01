@@ -104,7 +104,10 @@ start_cowboy(DevInfoPort) ->
             {"/authorize_device", authorize_device_handler, []},
             {"/device/:deviceid", get_device_handler, []},
             {"/admin/api/oem/:oemid/devices", get_oem_devices_handler, []},
-            {"/admin/api/clients/:clientid/devices",get_client_devices_handler, []}
+            {"/admin/api/clients/:clientid/devices", get_client_devices_handler, []},
+            {"/admin/api/oems/:oemid/devices/upload", upload_devices_handler, []},
+            {"/upload", cowboy_static, {priv_file, device_info, "upload.html"}},
+            {"/files/[...]", cowboy_static, {priv_dir, device_info, "files"}}
     ]}
   ]),
   {ok, Started} = cowboy:start_http(http, 100, 
