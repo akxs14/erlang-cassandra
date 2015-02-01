@@ -8,7 +8,8 @@
                   stdlib,
                   cowboy,
                   dev_info_db,
-                  eco
+                  eco,
+                  oauth2c
                  ]},
   {mod, { device_info_app, []}},
   {env, []}

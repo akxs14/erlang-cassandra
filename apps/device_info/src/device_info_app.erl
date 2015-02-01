@@ -53,7 +53,8 @@ shell() ->
     pooler,
     cqerl,
     eco,
-    dev_info_db
+    dev_info_db,
+    oauth2c
   ],
   [start_dependency(Dependency) || Dependency <- Dependencies],
   start(permanent, []).
