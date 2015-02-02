@@ -56,5 +56,4 @@ deb-package:
 	cp -r ./conf deb/var
 
 	make -C ./deps/debbie
-	erl -pa deps/debbie/ebin -pa deps/debbie/deps/edgar/ebin -pa deps/debbie/deps/swab/ebin
-  #  -eval "debbie:fy([{root_path, "deb/"}])."
+	cd ./deps/debbie && erl -noshell -pa `pwd`/ebin -pa `pwd`/deps/edgar/ebin -pa `pwd`/deps/swab/ebin -eval 'debbie:fy([{root_path, "priv/"}]), init:stop()'
