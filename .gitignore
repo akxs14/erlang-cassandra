@@ -11,3 +11,5 @@ deps
 ebin
 erl_crash.dump
 Mnesia.*
+deb/etc
+deb/var

@@ -47,13 +47,19 @@ shell:
 deb-package:
 	rebar get-deps
 	$(REBAR) compile
-	cd rel
-	$(REBAR) generate
+	cd rel && $(REBAR) generate
 
-	rm -r ./deb/etc/device_info
-	cp -r ./rel/device_info deb/etc
+	rm -rf deb/etc/device_info
+	cp -r rel/device_info deb/etc
 
-	cp -r ./conf deb/var
+	cp -r conf deb/etc/device_info
 
 	make -C ./deps/debbie
-	cd ./deps/debbie && erl -noshell -pa `pwd`/ebin -pa `pwd`/deps/edgar/ebin -pa `pwd`/deps/swab/ebin -eval 'debbie:fy([{root_path, "priv/"}]), init:stop()'
+
+	erl -noshell \
+			-pa `pwd`/deps/debbie/ebin \
+			-pa `pwd`/deps/debbie/deps/edgar/ebin \
+			-pa `pwd`/deps/debbie/deps/swab/ebin \
+			-eval 'debbie:fy([{root_path, "deb/"}]), init:stop()'
+
+	mv deb/debian.deb deb/device_info.deb
